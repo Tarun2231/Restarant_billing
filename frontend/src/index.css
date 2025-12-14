@@ -2,6 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  :root {
+    --color-primary: 249 115 22;
+  }
+  
+  .dark {
+    --color-primary: 251 146 60;
+  }
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -35,9 +45,28 @@ body {
   transition: all 0.3s ease-in-out;
 }
 
-/* Button hover effects */
+/* Button styles */
 .btn-primary {
-  @apply bg-primary-600 text-white font-bold py-4 px-8 rounded-lg shadow-lg hover:bg-primary-700 active:scale-95 transition-all duration-200;
+  @apply bg-orange-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:bg-orange-700 active:scale-95 transition-all duration-200;
+}
+
+.btn-secondary {
+  @apply bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 font-semibold py-3 px-6 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors;
+}
+
+/* Card styles */
+.card {
+  @apply bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-shadow;
+}
+
+/* Hide scrollbar but keep functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
 
 .btn-secondary {

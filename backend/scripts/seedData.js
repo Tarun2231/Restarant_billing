@@ -10,7 +10,12 @@ const sampleMenuItems = [
     price: 299,
     imageUrl: 'https://images.unsplash.com/photo-1527477396000-e27137b2a8b8?w=400',
     description: 'Crispy fried chicken wings with spicy sauce',
-    isAvailable: true
+    isAvailable: true,
+    stock: 50,
+    minStock: 10,
+    isVeg: false,
+    isBestseller: true,
+    isRecommended: false
   },
   {
     name: 'Spring Rolls',
@@ -18,7 +23,12 @@ const sampleMenuItems = [
     price: 199,
     imageUrl: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400',
     description: 'Vegetable spring rolls with sweet chili sauce',
-    isAvailable: true
+    isAvailable: true,
+    stock: 40,
+    minStock: 10,
+    isVeg: true,
+    isBestseller: false,
+    isRecommended: true
   },
   {
     name: 'French Fries',
@@ -170,9 +180,19 @@ async function seedDatabase() {
     await Menu.deleteMany({});
     console.log('🗑️  Cleared existing menu items');
 
+    // Add enhanced fields to all items
+    const enhancedItems = sampleMenuItems.map((item, index) => ({
+      ...item,
+      stock: Math.floor(Math.random() * 50) + 20,
+      minStock: 10,
+      isVeg: item.name.toLowerCase().includes('chicken') ? false : true,
+      isBestseller: index % 5 === 0,
+      isRecommended: index % 7 === 0,
+    }));
+
     // Insert sample menu items
-    await Menu.insertMany(sampleMenuItems);
-    console.log(`✅ Inserted ${sampleMenuItems.length} menu items`);
+    await Menu.insertMany(enhancedItems);
+    console.log(`✅ Inserted ${enhancedItems.length} menu items`);
 
     console.log('🎉 Database seeded successfully!');
     process.exit(0);

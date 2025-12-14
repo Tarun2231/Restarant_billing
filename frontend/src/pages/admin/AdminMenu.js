@@ -38,7 +38,9 @@ const AdminMenu = () => {
     try {
       setLoading(true);
       const response = await getMenu();
-      setMenuItems(response.data);
+      // Handle both array response and data property
+      const menuData = Array.isArray(response.data) ? response.data : (response.data?.data || response.data || []);
+      setMenuItems(menuData);
     } catch (error) {
       console.error('Error fetching menu:', error);
       if (error.response?.status === 401) {

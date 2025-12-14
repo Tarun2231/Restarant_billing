@@ -4,7 +4,7 @@ const orderItemSchema = new mongoose.Schema({
   itemId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Menu',
-    required: true
+    required: false // Allow null for combo items
   },
   name: {
     type: String,
@@ -19,6 +19,18 @@ const orderItemSchema = new mongoose.Schema({
     type: Number,
     required: true,
     min: 0
+  },
+  customization: {
+    type: mongoose.Schema.Types.Mixed,
+    default: {}
+  },
+  isCombo: {
+    type: Boolean,
+    default: false
+  },
+  comboItems: {
+    type: [String],
+    default: []
   }
 }, { _id: false });
 
@@ -47,12 +59,20 @@ const orderSchema = new mongoose.Schema({
   },
   orderStatus: {
     type: String,
-    enum: ['Placed', 'Preparing', 'Ready', 'Completed'],
+    enum: ['Placed', 'Preparing', 'Ready', 'Delivered', 'Cancelled'],
     default: 'Placed'
   },
   receiptPrinted: {
     type: Boolean,
     default: false
+  },
+  tokenNumber: {
+    type: String,
+    default: ''
+  },
+  estimatedTime: {
+    type: Number, // in minutes
+    default: 20
   }
 }, {
   timestamps: true

@@ -6,12 +6,22 @@ const Menu = require('../models/Menu');
 router.get('/', async (req, res) => {
   try {
     const { category } = req.query;
-    const query = category ? { category, isAvailable: true } : { isAvailable: true };
+    const query = {};
+    
+    if (category) {
+      query.category = category;
+    }
+    // Only filter by isAvailable if explicitly set to false
+    // This allows items without the field to be shown
+    query.$or = [
+      { isAvailable: { $ne: false } },
+      { isAvailable: { $exists: false } }
+    ];
     
     const menuItems = await Menu.find(query).sort({ category: 1, name: 1 });
-    res.json(menuItems);
+    res.json({ data: menuItems, success: true });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error.message, success: false });
   }
 });
 
@@ -50,6 +60,27 @@ router.put('/:id', async (req, res) => {
     if (!menuItem) {
       return res.status(404).json({ error: 'Menu item not found' });
     }
+    
+    // Emit Socket.io event for inventory update
+    const io = req.app.get('io');
+    if (io) {
+      // Emit inventory update event to admin room
+      io.to('admin').emit('inventory-updated', {
+        itemId: menuItem._id,
+        itemName: menuItem.name,
+        stock: menuItem.stock,
+        minStock: menuItem.minStock,
+      });
+      
+      // Emit dashboard update event to refresh all stats
+      io.to('admin').emit('dashboard-update', {
+        message: 'Inventory updated - dashboard refresh required',
+        itemId: menuItem._id,
+      });
+      
+      console.log(`📦 Inventory updated via API: ${menuItem.name} - Stock: ${menuItem.stock}, Min: ${menuItem.minStock}`);
+    }
+    
     res.json(menuItem);
   } catch (error) {
     res.status(400).json({ error: error.message });

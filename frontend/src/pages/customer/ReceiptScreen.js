@@ -1,24 +1,40 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { QRCodeSVG } from 'qrcode.react';
 import { getOrder, markReceiptPrinted } from '../../services/api';
+import { generateOrderQRData, generateTokenNumber } from '../../utils/qrCode';
+import { playSound } from '../../utils/sound';
+import { setCurrentOrder } from '../../store/slices/orderSlice';
 
 const ReceiptScreen = () => {
   const { orderId } = useParams();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [printing, setPrinting] = useState(false);
+  const [tokenNumber] = useState(generateTokenNumber());
+  const [estimatedTime] = useState(Math.floor(Math.random() * 20) + 15); // 15-35 minutes
 
   useEffect(() => {
     fetchOrder();
   }, [orderId]);
 
   useEffect(() => {
+    // Play sound notification when order is loaded
+    if (order) {
+      playSound('order');
+      dispatch(setCurrentOrder(order));
+    }
+  }, [order, dispatch]);
+
+  useEffect(() => {
     // Auto-print after a short delay
     if (order && !order.receiptPrinted) {
       const timer = setTimeout(() => {
         handlePrint();
-      }, 1000);
+      }, 2000);
       return () => clearTimeout(timer);
     }
   }, [order]);
@@ -126,6 +142,14 @@ const ReceiptScreen = () => {
               <span className="font-bold">{order.orderNumber}</span>
             </div>
             <div className="flex justify-between mb-2">
+              <span className="font-semibold">Token Number:</span>
+              <span className="font-bold text-2xl text-primary-600">{tokenNumber}</span>
+            </div>
+            <div className="flex justify-between mb-2">
+              <span className="font-semibold">Estimated Time:</span>
+              <span className="font-bold text-orange-600">{estimatedTime} minutes</span>
+            </div>
+            <div className="flex justify-between mb-2">
               <span className="font-semibold">Date & Time:</span>
               <span>{formatDate(order.createdAt)}</span>
             </div>
@@ -169,26 +193,56 @@ const ReceiptScreen = () => {
             </div>
           </div>
 
+          {/* QR Code */}
+          <div className="border-t-2 border-gray-300 pt-6 mb-6">
+            <div className="text-center">
+              <p className="font-semibold mb-2">Scan to Track Order</p>
+              <div className="flex justify-center">
+                <QRCodeSVG
+                  value={generateOrderQRData(order._id, order.orderNumber)}
+                  size={150}
+                  level="M"
+                />
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                Visit /track/{order._id} to track your order
+              </p>
+            </div>
+          </div>
+
           {/* Footer */}
           <div className="text-center text-gray-600 border-t-2 border-gray-300 pt-6">
             <p className="mb-2">Thank you for your order!</p>
             <p className="text-sm">Please show this receipt at the counter</p>
-            <p className="text-sm mt-2">Payment Status: <span className="font-bold text-green-600">{order.paymentStatus}</span></p>
+            <p className="text-sm mt-2">
+              Payment Status: <span className="font-bold text-green-600">{order.paymentStatus}</span>
+            </p>
+            <p className="text-sm mt-2">
+              Order Status: <span className="font-bold text-blue-600">{order.orderStatus || 'Placed'}</span>
+            </p>
           </div>
         </div>
 
         {/* Action Buttons (Hidden when printing) */}
-        <div className="no-print mt-8 flex space-x-4">
-          <button
-            onClick={handlePrint}
-            className="btn-primary flex-1 text-xl"
-            disabled={printing}
-          >
-            {printing ? 'Printing...' : 'Print Receipt'}
-          </button>
+        <div className="no-print mt-8 flex flex-col space-y-4">
+          <div className="flex space-x-4">
+            <button
+              onClick={() => navigate(`/track/${orderId}`)}
+              className="btn-primary flex-1 text-xl"
+            >
+              Track Order
+            </button>
+            <button
+              onClick={handlePrint}
+              className="btn-secondary flex-1 text-xl"
+              disabled={printing}
+            >
+              {printing ? 'Printing...' : 'Print Receipt'}
+            </button>
+          </div>
           <button
             onClick={() => navigate('/')}
-            className="btn-secondary flex-1 text-xl"
+            className="btn-secondary w-full text-xl"
           >
             New Order
           </button>

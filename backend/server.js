@@ -1,9 +1,50 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const http = require('http');
+const { Server } = require('socket.io');
 require('dotenv').config();
 
 const app = express();
+const server = http.createServer(app);
+
+// Socket.io setup
+const io = new Server(server, {
+  cors: {
+    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    methods: ['GET', 'POST'],
+  },
+});
+
+// Store io instance for use in routes
+app.set('io', io);
+
+// Socket.io connection handling
+io.on('connection', (socket) => {
+  console.log('✅ Client connected:', socket.id);
+
+  // Join admin room
+  socket.on('join-admin', () => {
+    socket.join('admin');
+    console.log('Admin joined:', socket.id);
+  });
+
+  // Join kitchen room
+  socket.on('join-kitchen', () => {
+    socket.join('kitchen');
+    console.log('Kitchen joined:', socket.id);
+  });
+
+  // Join customer room for order tracking
+  socket.on('join-order', (orderId) => {
+    socket.join(`order-${orderId}`);
+    console.log(`Client joined order room: order-${orderId}`);
+  });
+
+  socket.on('disconnect', () => {
+    console.log('❌ Client disconnected:', socket.id);
+  });
+});
 
 // Middleware
 app.use(cors());
@@ -52,7 +93,7 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/restauran
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
 
