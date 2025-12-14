@@ -34,9 +34,12 @@ import CustomerInteraction from './pages/admin/CustomerInteraction';
 import KitchenDisplay from './pages/kitchen/KitchenDisplay';
 
 function App() {
+  // Get basename from environment or use default for GitHub Pages
+  const basename = process.env.PUBLIC_URL || '/Restarant_billing';
+  
   return (
     <Provider store={store}>
-      <Router>
+      <Router basename={basename}>
         <ThemeProvider>
           <AuthProvider>
             <div className="kiosk-container">
