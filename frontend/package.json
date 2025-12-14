@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Frontend for restaurant self-ordering system",
   "private": true,
+  "homepage": "https://Tarun2231.github.io/Restarant_billing",
   "dependencies": {
     "@reduxjs/toolkit": "^2.11.1",
     "autoprefixer": "^10.4.16",
@@ -24,7 +25,9 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
   },
   "eslintConfig": {
     "extends": [
@@ -42,5 +45,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "gh-pages": "^6.3.0"
   }
 }
