@@ -77,7 +77,7 @@ const PaymentScreen = () => {
         paymentMethod: selectedMethod,
       });
 
-      if (paymentResponse.data.success) {
+      if (paymentResponse.data && paymentResponse.data.success) {
         // Create order - handle both regular items and combo items
         const orderItems = items.map(item => ({
           itemId: item.isCombo ? null : item._id, // Combo items don't have menu itemId
@@ -95,27 +95,45 @@ const PaymentScreen = () => {
           paymentStatus: 'Paid',
         });
 
-        // Add to order history
-        dispatch(addOrder(orderResponse.data));
-        
-        // Add loyalty points (1 point per ₹10 spent)
-        const pointsEarned = Math.floor(finalTotal / 10);
-        if (pointsEarned > 0) {
-          dispatch(addPoints(pointsEarned));
+        if (orderResponse.data) {
+          // Add to order history
+          dispatch(addOrder(orderResponse.data));
+          
+          // Add loyalty points (1 point per ₹10 spent)
+          const pointsEarned = Math.floor(finalTotal / 10);
+          if (pointsEarned > 0) {
+            dispatch(addPoints(pointsEarned));
+          }
+
+          // Clear cart
+          dispatch(clearCart());
+          toast.success(`Order placed! Earned ${pointsEarned} loyalty points!`, { icon: '✅' });
+
+          // Navigate to receipt
+          navigate(`/receipt/${orderResponse.data._id || orderResponse.data.order?._id}`);
+        } else {
+          setError('Order creation failed. Please try again.');
         }
-
-        // Clear cart
-        dispatch(clearCart());
-        toast.success(`Order placed! Earned ${pointsEarned} loyalty points!`, { icon: '✅' });
-
-        // Navigate to receipt
-        navigate(`/receipt/${orderResponse.data._id}`);
       } else {
-        setError('Payment failed. Please try again.');
+        setError(paymentResponse.data?.error || 'Payment failed. Please try again.');
       }
     } catch (error) {
       console.error('Payment error:', error);
-      setError(error.response?.data?.error || 'Payment failed. Please try again.');
+      
+      // Show user-friendly error messages
+      const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+      
+      if (error.userMessage) {
+        setError(error.userMessage);
+      } else if (error.code === 'ECONNABORTED' || error.message === 'Network Error' || !error.response) {
+        if (isProduction) {
+          setError('Backend API is not available. Payment cannot be processed. Please deploy the backend server.');
+        } else {
+          setError('Cannot connect to backend server. Please ensure the backend is running on http://localhost:5000');
+        }
+      } else {
+        setError(error.response?.data?.error || error.message || 'Payment failed. Please try again.');
+      }
     } finally {
       setProcessing(false);
     }

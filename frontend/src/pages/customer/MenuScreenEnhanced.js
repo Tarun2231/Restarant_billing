@@ -38,8 +38,24 @@ const MenuScreenEnhanced = () => {
     try {
       setLoading(true);
       const response = await getMenu();
-      // Handle both array response and data property
-      const menuData = Array.isArray(response.data) ? response.data : (response.data?.data || response.data || []);
+      
+      // Handle different response formats
+      let menuData = [];
+      if (Array.isArray(response.data)) {
+        menuData = response.data;
+      } else if (response.data?.data && Array.isArray(response.data.data)) {
+        menuData = response.data.data;
+      } else if (response.data && typeof response.data === 'object') {
+        // Try to extract array from response
+        menuData = Object.values(response.data).find(Array.isArray) || [];
+      }
+      
+      // Ensure menuData is an array
+      if (!Array.isArray(menuData)) {
+        console.warn('Menu data is not an array:', menuData);
+        menuData = [];
+      }
+      
       // Use data from backend, add defaults if missing
       const itemsWithBadges = menuData.map((item) => ({
         ...item,
@@ -49,10 +65,33 @@ const MenuScreenEnhanced = () => {
         stock: item.stock !== undefined ? item.stock : Math.floor(Math.random() * 50) + 10,
         minStock: item.minStock || 10,
       }));
+      
       setMenuItems(itemsWithBadges);
+      
+      if (itemsWithBadges.length === 0) {
+        console.warn('No menu items found in response');
+      }
     } catch (error) {
       console.error('Error fetching menu:', error);
-      toast.error('Failed to load menu. Please try again.');
+      
+      // Set empty array to prevent undefined errors
+      setMenuItems([]);
+      
+      // Show user-friendly error message
+      const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+      if (error.userMessage || error.code === 'ECONNABORTED' || error.message === 'Network Error' || !error.response) {
+        if (isProduction) {
+          toast.error('Backend API is not available. Menu items cannot be loaded. Please deploy the backend server.', {
+            duration: 5000,
+          });
+        } else {
+          toast.error('Cannot connect to backend server. Please ensure the backend is running on http://localhost:5000', {
+            duration: 5000,
+          });
+        }
+      } else {
+        toast.error('Failed to load menu. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
