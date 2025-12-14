@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/Restarant_billing/static/css/main.055f65f7.css",
-    "main.js": "/Restarant_billing/static/js/main.ee49362d.js",
+    "main.js": "/Restarant_billing/static/js/main.61419fa7.js",
     "index.html": "/Restarant_billing/index.html",
     "main.055f65f7.css.map": "/Restarant_billing/static/css/main.055f65f7.css.map",
-    "main.ee49362d.js.map": "/Restarant_billing/static/js/main.ee49362d.js.map"
+    "main.61419fa7.js.map": "/Restarant_billing/static/js/main.61419fa7.js.map"
   },
   "entrypoints": [
     "static/css/main.055f65f7.css",
-    "static/js/main.ee49362d.js"
+    "static/js/main.61419fa7.js"
   ]
 }
