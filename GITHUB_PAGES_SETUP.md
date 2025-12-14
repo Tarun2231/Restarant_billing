@@ -39,15 +39,22 @@ This will:
 ### ⚠️ Important Notes
 
 1. **Backend API**: The frontend is deployed, but the backend API needs to be hosted separately (e.g., Heroku, Railway, Render, etc.)
+   - **Current Status**: Backend is NOT deployed yet, which is why login fails
+   - **Solution**: See `BACKEND_DEPLOYMENT.md` for step-by-step deployment guide
 
-2. **API URL**: Update the `REACT_APP_API_URL` environment variable in your deployment platform to point to your backend URL.
+2. **API URL**: After deploying the backend, update the `REACT_APP_API_URL` environment variable:
+   - Create `.env.production` file in `frontend` directory:
+     ```
+     REACT_APP_API_URL=https://your-backend-url.com/api
+     ```
+   - Rebuild and redeploy: `cd frontend && npm run deploy`
 
-3. **Environment Variables**: For production, create a `.env.production` file in the `frontend` directory:
-   ```
-   REACT_APP_API_URL=https://your-backend-url.com/api
-   ```
+3. **CORS**: Make sure your backend allows requests from `https://tarun2231.github.io`
+   - Update `backend/server.js` CORS configuration to include your GitHub Pages URL
 
-4. **CORS**: Make sure your backend allows requests from `https://tarun2231.github.io`
+4. **Quick Fix for Testing**: 
+   - The frontend will automatically detect if backend is not available
+   - You'll see helpful error messages instead of generic "Login failed"
 
 ### 📦 What Was Deployed
 

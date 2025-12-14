@@ -1,12 +1,19 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+// Detect if we're on GitHub Pages (production) or localhost (development)
+const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 
+  (isProduction 
+    ? 'https://your-backend-url.herokuapp.com/api' // Replace with your deployed backend URL
+    : 'http://localhost:5000/api'
+  );
 
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 10000, // 10 second timeout
 });
 
 // Add token to requests if available
@@ -19,6 +26,24 @@ api.interceptors.request.use(
     return config;
   },
   (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Handle API errors gracefully
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // Handle network errors (backend not available)
+    if (error.code === 'ECONNABORTED' || error.message === 'Network Error' || !error.response) {
+      const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+      
+      if (isProduction) {
+        error.userMessage = 'Backend API is not available. Please deploy the backend server or update REACT_APP_API_URL environment variable.';
+      } else {
+        error.userMessage = 'Cannot connect to backend server. Please ensure the backend is running on http://localhost:5000';
+      }
+    }
     return Promise.reject(error);
   }
 );

@@ -23,7 +23,19 @@ const AdminLogin = () => {
         navigate('/admin/dashboard');
       }
     } catch (error) {
-      setError(error.response?.data?.error || 'Login failed');
+      // Show user-friendly error messages
+      if (error.userMessage) {
+        setError(error.userMessage);
+      } else if (error.code === 'ECONNABORTED' || error.message === 'Network Error' || !error.response) {
+        const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+        if (isProduction) {
+          setError('Backend API is not available. The backend server needs to be deployed separately. Please check the deployment documentation.');
+        } else {
+          setError('Cannot connect to backend server. Please ensure the backend is running on http://localhost:5000');
+        }
+      } else {
+        setError(error.response?.data?.error || 'Login failed. Please check your credentials.');
+      }
     } finally {
       setLoading(false);
     }
